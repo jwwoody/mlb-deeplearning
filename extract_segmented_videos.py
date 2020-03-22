@@ -4,6 +4,7 @@ import string
 import random
 import subprocess
 import multiprocessing
+import uuid
 
 def local_clip(filename, start_time, duration, output_filename, output_directory):
     end_time = start_time + duration
@@ -21,7 +22,7 @@ def local_clip(filename, start_time, duration, output_filename, output_directory
         output = subprocess.check_output(command, shell=True,
                                          stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as err:
-        print err.output
+        print(err.output)
         return err.output
 
 
@@ -30,12 +31,17 @@ def wrapper(clip):
     output_directory = '/'
     duration = clip['end']-clip['start']
     filename = clip['url'].split('=')[-1]
-    local_clip(os.path.join(input_directory,filename+'.mkv'), clip['start'], duration, clip['clip_name']+'.mp4', output_directory)
+    print(clip)
+    clipName = filename + str(uuid.uuid4())[:8]
+    local_clip(os.path.join(input_directory,filename+'.mkv'), clip['start'], duration, clipName+'.mp4', output_directory)
     return 0
     
 
-with open('data/mlb-youtube-segmented.json', 'r') as f:
-    data = json.load(f)
-    pool = multiprocessing.Pool(processes=8)
-    pool.map(wrapper, [data[k] for k in data.keys()])
+
+if __name__ == '__main__':
+    with open('data/mlb-youtube-segmented.json', 'r') as f:
+    # with open('data/mlb2.json', 'r') as f:
+        data = json.load(f)
+        pool = multiprocessing.Pool(processes=8)
+        pool.map(wrapper, [data[k] for k in data.keys()])
     
